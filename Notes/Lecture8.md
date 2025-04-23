@@ -28,8 +28,19 @@
 
 ```Java
 
-List l = new LinkedList(),
-l.add(new Integer(0)),
+List l = new LinkedList();
+l.add(new Integer(0));
 
 ```
 
+### Wildcard in Java
+- does not care what type is
+```Java
+
+void printAll(List<?> l)
+{
+    for (Object o.l)
+        System.out.println(o);
+}
+
+```
