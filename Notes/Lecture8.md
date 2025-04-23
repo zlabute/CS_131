@@ -26,5 +26,10 @@
 - Defines type parameters at compile-time  
 - **Makes code safer** by catching type errors early  
 
+```Java
 
+List l = new LinkedList(),
+l.add(new Integer(0)),
+
+```
 
