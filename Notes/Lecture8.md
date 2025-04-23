@@ -14,17 +14,17 @@
 - A list type that can hold any element type  
 - Syntax: `List<T>`
 
-#### Common Implementations
+##### Common Implementations
 - `List<T>` (interface)  
 - `LinkedList<T>` (class)  
 
-### Java Generics
+##### Java Generics
 
-#### Without Generics
+###### Without Generics
 - Relies on **dynamic** type checking at runtime  
 - Less safe (risk of `ClassCastException`)
 
-#### With Generics
+###### With Generics
 - Defines type parameters at compile-time  
 - **Makes code safer** by catching type errors early  
 
@@ -35,7 +35,7 @@ l.add(new Integer(0));
 
 ```
 
-#### Wildcard in Java
+##### Wildcard in Java
 - does not care what type is
 ```Java
 
@@ -46,3 +46,4 @@ void printAll(List<?> l)
 }
 
 ```
+
