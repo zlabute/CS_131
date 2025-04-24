@@ -76,7 +76,7 @@ List<? super T> s;
     - bind is the process by which this mapping is made
 - bindings occur 
 
-## How is a name bound
+### How is a name bound
 - Bound to the value
 - Could be bound to the address
 - PIE - Position Independent Executable
