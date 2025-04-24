@@ -73,11 +73,30 @@ List<? super T> s;
 - Issues like (what can be in a name, are they case sensitive)
 - an association between a name and a value
 - context: names -> values (mapping)
+    - bind is the process by which this mapping is made
+- bindings occur 
+
+## How is a name bound
+- Bound to the value
+- Could be bound to the address
+- PIE - Position Independent Executable
+    - Is helpful in avoiding hacking
+    - prevents hackers form knowing where you are accessing
 
 ### Binding Time
 - when does the binding occur
-- options
-    - during execution
+- depends on the language
+- options:
+    - during execution 
+    - at compile time 
+    - at link time
+        - determined by linker
+    - at load time
+    - at function entry time
+    - at object allocation time
+- aspects of the language that are key to understanding how your program will operate
+
+
 
 
 
