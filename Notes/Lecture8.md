@@ -47,3 +47,37 @@ void printAll(List<?> l)
 
 ```
 
+- bounded wildcard (accounts for supertypes)
+
+``` Java
+List<? super T> s;
+```
+
+### Dynamic Type Checking
+- Alternate school of thought
+- maybe static type checking is too complex and better to dynamically check
+
+#### Pros and Cons
+- \- Safety
+- \- performance
+- \+ simplicity
+- \+ flexibility
+
+#### Duck Typing
+- Checks if the behaviors of the objects are the same
+- If they are just assumes they are the same 
+
+
+## Names and Bindings
+- Names are called identifiers, tags
+- Issues like (what can be in a name, are they case sensitive)
+- an association between a name and a value
+- context: names -> values (mapping)
+
+### Binding Time
+- when does the binding occur
+- options
+- - during execution
+
+
+
