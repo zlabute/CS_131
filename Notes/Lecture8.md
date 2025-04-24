@@ -77,7 +77,7 @@ List<? super T> s;
 ### Binding Time
 - when does the binding occur
 - options
-- - during execution
+    - during execution
 
 
 
