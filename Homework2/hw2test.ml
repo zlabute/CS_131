@@ -99,7 +99,7 @@ let awkish_grammar =
   
   
 
-let example1 : (awksub_nonterminals, string) pt =  (* Tests: 2 *)
+let example1 : (awksub_nonterminals, string) parse_tree =  (* Tests: 2 *)
   Node (Expr, [
     Leaf "(";
     Node (Term, [Leaf "5"]);
@@ -107,7 +107,7 @@ let example1 : (awksub_nonterminals, string) pt =  (* Tests: 2 *)
   ])
 
 (* Example 2: simple binary expression "3 + 4" *)
-let example2 : (awksub_nonterminals, string) pt =
+let example2 : (awksub_nonterminals, string) parse_tree =
   Node (Expr, [
     Node (Term, [Leaf "3"]);
     Node (Binop, [Leaf "+"]);
@@ -115,14 +115,14 @@ let example2 : (awksub_nonterminals, string) pt =
   ])
 
 (* Example 3: prefix increment "++$5" *)
-let example3 : (awksub_nonterminals, string) pt  =
+let example3 : (awksub_nonterminals, string) parse_tree  =
   Node (Expr, [
     Node (Incrop, [Leaf "++"]);
     Node (Lvalue, [Leaf "$"; Node (Expr, [Node (Term, [Leaf "5"])])])
   ])
 
 (* Example 4: postfix decrement "$7--" *)
-let example4 : (awksub_nonterminals, string) pt =
+let example4 : (awksub_nonterminals, string) parse_tree =
   Node (Expr, [
     Node (Lvalue, [Leaf "$"; Node (Expr, [Node (Term, [Leaf "7"])])]);
     Node (Incrop, [Leaf "--"])
@@ -198,8 +198,10 @@ let test7 =
  
 
 
+(* extra make_parser make_matcher tests *)
 
-let eq_grammar : (string, string) grammar = (* tests for grammar ('('^n X ')'^n | n >= 0) *)
+    
+let eq_grammar : (string, string) grammar = (* tests for grammar ('('^n X ')'^n | n >= 0) *) 
   ("S", function
     | "S" ->
         [ [ T "(" ; N "S" ; T ")" ]  (* a S b *)
@@ -207,11 +209,65 @@ let eq_grammar : (string, string) grammar = (* tests for grammar ('('^n X ')'^n 
         ]
     | _ -> [])
 
-let test_eq_matcher =
+let make_matcher_test_0 =
   make_matcher eq_grammar accept_all ["(";"(";")";")";"W";"H"] = Some ["W";"H"]
 
-let test_eq_parser =
+let make_parser_test_0 =
   match make_parser eq_grammar ["(";"(";")";")"] with
   | Some tree -> parse_tree_leaves tree = ["(";"(";")";")"]
   | None      -> false
     
+
+let leftrec_grammar : (string, string) grammar =
+  let prod = function
+  | "X" -> [ [N "X"; T "a"] ; 
+  [T "a"] ]      
+| _   -> []
+in
+("X", prod)
+
+(* These functions are commented out becasuse they hang forever when ran as
+   make_matcher and make_parser beacuse they are purposefully designed to
+   demonstrate naive nature of the functions that cannot handle left recursion
+   when passed ["a"]*)
+
+(* let test_matcher_leftrec_infinite =
+  (* matcher never finishes on ["a"] *)
+  let diverges = ref false in
+  try
+    ignore (make_matcher leftrec_grammar (fun _ -> Some []) ["a"]);
+    false
+  with _ ->
+    false
+
+let test_parser_leftrec_infinite =
+  (* parser never finishes on ["a"] *)
+  let diverges = ref false in
+  try
+    ignore (make_parser leftrec_grammar ["a"]);
+    false
+  with _ ->
+    false *)
+    
+
+
+(* Test cases for this portion are set to true if there is an issue with the ordering if handled naively *)
+(* Test cases testing for ambiguous grammars and frags*)
+  
+let ord_grammar : (string, string) grammar = 
+  let prod = function
+    | "S" -> [ [T "b"]        (* shorter, but tried first *) 
+              ; [T "b"; T "b"] ]  (* longer, correct branch *) 
+    | _   -> []
+  in
+  ("S", prod)
+
+
+let make_parser_test_1 =  
+  make_parser ord_grammar ["b";"b"] = None
+
+let make_matcher_test_1=
+  make_matcher ord_grammar (fun suffix -> Some suffix) ["b";"b"]
+  = Some ["b"] (* Suffix should be Some["b"; "b";]*)
+
+

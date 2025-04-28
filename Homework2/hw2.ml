@@ -7,9 +7,9 @@ type ('non_term, 'term) symbol =
   | N of 'non_term
   | T of 'term
 
-type ('non_term, 'term) pt =
-  | Leaf of 'term
-  | Node of 'non_term * ('non_term, 'term) pt list 
+type ('nonterminal, 'terminal) parse_tree =
+  | Node of 'nonterminal * ('nonterminal, 'terminal) parse_tree list
+  | Leaf of 'terminal
 
 type ('non_term, 'term) grammar = 
   non_term * ('non_term -> ('non_term, 'term) symbol list list)
@@ -104,12 +104,12 @@ let make_parser (start, prod) =
     let rec helper = function
       | [] -> None
       | branch :: bs ->
-          match parse_rhs branch frag with
+        match parse_rhs branch frag with
           | None -> helper bs
           | Some (sub, r1) ->
-              (match parse_rhs rest_syms r1 with
-               | Some (ts, r2) -> Some (Node (non_term, sub) :: ts, r2)
-               | None -> helper bs)
+              match parse_rhs rest_syms r1 with
+              | Some (ts, r2) -> Some (Node (non_term, sub) :: ts, r2)
+              | None -> helper bs
     in helper branches
 
   in
