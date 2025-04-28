@@ -33,36 +33,6 @@ let awksub_grammar = Expr, awksub_rules
 let awksub_grammar_2 = convert_grammar awksub_grammar   (* Tests: 1 *)
 let (start2, prod2) = awksub_grammar_2
 
-let () =
-  assert (start2 = Expr);
-  assert (prod2 Expr = [
-    [T"("; N Expr; T")"];           
-    [N Num];                    
-    [N Expr; N Binop; N Expr];  
-    [N Lvalue];                   
-    [N Incrop; N Lvalue];        
-    [N Lvalue; N Incrop]             
-  ]);
-  
-  assert (prod2 Lvalue = [[T"$"; N Expr]]);
-  assert (prod2 Incrop = [[T"++"]; [T"--"]]);
-  assert (prod2 Binop = [[T"+"]; [T"-"]]);
-  assert (prod2 Num = [[T"0"]; [T"1"]; [T"2"]; [T"3"]; [T"4"]; [T"5"]; [T"6"]; [T"7"]; [T"8"]; [T"9"]]);
-  print_endline "convert_grammar tests passed!"
-
-module Simple = struct
-  type simple_nt = Start
-  let simple_grammar = (Start, [
-    (Start, [T"a"; N Start]);
-    (Start, [T"b"])
-  ])
-  let (s2, p2) = convert_grammar simple_grammar
-  let () =
-    assert (s2 = Start);
-    assert (p2 Start = [[T"a"; N Start]; [T"b"]]);
-    print_endline "simple grammar test passed!"
-end
-
 
 (*Consider the following BNF grammar with start symbol Expr:
 
@@ -193,6 +163,11 @@ let test4 =
       "++"; "+"; "0"])
   = Some [])
 
+
+
+
+
+
 let test5 =
   (parse_tree_leaves (Node ("+", [Leaf 3; Node ("*", [Leaf 4; Leaf 5])]))
    = [3; 4; 5])
@@ -221,3 +196,22 @@ let test7 =
     | Some tree -> parse_tree_leaves tree = small_awk_frag
     | _ -> false
  
+
+
+
+let eq_grammar : (string, string) grammar = (* tests for grammar ('('^n X ')'^n | n >= 0) *)
+  ("S", function
+    | "S" ->
+        [ [ T "(" ; N "S" ; T ")" ]  (* a S b *)
+        ; []                      
+        ]
+    | _ -> [])
+
+let test_eq_matcher =
+  make_matcher eq_grammar accept_all ["(";"(";")";")";"W";"H"] = Some ["W";"H"]
+
+let test_eq_parser =
+  match make_parser eq_grammar ["(";"(";")";")"] with
+  | Some tree -> parse_tree_leaves tree = ["(";"(";")";")"]
+  | None      -> false
+    

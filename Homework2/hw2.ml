@@ -77,15 +77,43 @@ let make_matcher (start, prod) = (* Match the rhs to the head of the symbol list
 
 
 
-(* //////////////////////////////////////////////////////////////////////////////////// *)
+(* /////////////////////        make parser            //////////////////////// *)
 
 
 let make_parser (start, prod) =
-  let rec parse_rhs syms frag = 
-    match syms with 
-    | [] ->
-      Some ([], frag_)
-    
-    | T valid_terminal :: syms_tail ->
-      (match frag with
-        )
+
+  let rec parse_rhs syms frag =
+    match syms, frag with
+    | [], _ -> (* Empty list no more symbols to parse return empty tree and frag as suffix*)
+        Some ([], frag)
+
+    | T valid_terminal :: syms_tail, head :: tail (* encounter a terminal that matches valid_terminal tro the head of the frag and constructs leaves recursively  *)
+      when valid_terminal = head ->
+        (match parse_rhs syms_tail tail with
+         | Some (ts, r) -> Some (Leaf valid_terminal :: ts, r)
+         | None -> None)
+
+    | N non_term :: rest_syms, _ -> (* encounter non_terminal and expand with dfs using try_branches corecursive function*)
+        try_branches non_term rest_syms frag
+
+    | _, _ -> (* If does not match above patterns there is nothing to be done and syms and frag do not matter *)
+        None
+
+  and try_branches non_term rest_syms frag = (* exhaustively expands non_terminals and sub trees *)
+    let branches = prod non_term in
+    let rec helper = function
+      | [] -> None
+      | branch :: bs ->
+          match parse_rhs branch frag with
+          | None -> helper bs
+          | Some (sub, r1) ->
+              (match parse_rhs rest_syms r1 with
+               | Some (ts, r2) -> Some (Node (non_term, sub) :: ts, r2)
+               | None -> helper bs)
+    in helper branches
+
+  in
+  fun frag ->
+    match parse_rhs [N start] frag with
+    | Some ([tree], []) -> Some tree
+    | _ -> None
