@@ -96,6 +96,53 @@ List<? super T> s;
     - at object allocation time
 - aspects of the language that are key to understanding how your program will operate
 
+### Issues with Binding
+
+#### Dynamic vs. Static Binding
+- static binding
+    - when executing a variable go look at what is stored
+- dynamic binding
+    - to determine which nonlocal var you want, look at the caller, then at caller's caller, and .etc
+
+#### Explicit vs Implicit Binding
+- Explicit:
+    - Written in program
+- Implicit: 
+    - declares the name if not already explicitly declared based upon context of program or what initialized to
+    - Derived from program
+        - Perl
+        - FORTRAN 
+            - variables begin with letter of type
+
+### Namespaces
+- primitive nameaspaces
+```c++
+int f()
+{
+    struct f{int f;} f;
+    enum f {g, h}; // breaks rules here because could be referring to parent's namespace if replace g with f
+    #include {f};
+    #define f g;
+    f: gets f;
+}
+```
+- labeled namespace
+    - naming namespaces
+    ```python
+    import math
+    f = math.sqrt(4)
+    ```
+- information hiding & namespaces
+    ```c++
+    class c{
+        int m(){ };
+        int n(){ };
+        private int o() { } // hiddent
+    }
+    ```
+
+
+
 
 
 
