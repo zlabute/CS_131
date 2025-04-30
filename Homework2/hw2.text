@@ -1,3 +1,470 @@
-CS 131 Homework 2 Text Report
+CS 131 Homework 2 Text Report                                                 |
 
-Testing that this is not the Issue
+I was able to succesfully complete the function convert_grammar
+and parse_tree leaves without issue and they both performed well via my own 
+test cases and the test cases of the auto grader. After this point I began my 
+work on make matcher trying to understand the best approach. I settled on using
+a recursive function with a top level match_rhs that effectively walked the
+sumbol list syms from head to tail and takes in matching terminal and calls
+try_branches on non_terminals. On encountering a non terminal try_branches
+takes all possible productions and tries each until a match is found. No 
+back tracking is allowed beyod the try_branches method which follows a dfs  
+approach. In the end when it came down to creating my make_parser function
+I chose to do Neither as I had already created my make_matcher function
+and I felt that the only way for me to make one in terms of another
+would have been to make make_matcher that utilized a call of make_parser but
+did not utilize the returned parse tree. While both functions follow a 
+similar pattern of x_rhs and try_branches helpers they are functionally 
+differnt as make_parser had the need to also build the parse tree as 
+it traversed the symbols given. Also within try_branches the way Some frag
+and Some (tree, rem) is packaged is differnt to the different requirements
+of the matcher versus the parser. Altogether the inherent difference that
+a matcher may consumer only an initial prefix of the input while a parser
+will consume the entire input led me to take the approach of creating them
+seperately while they still maintained many similar characteristics. The 
+experiencing of building make_matcher still heavily informed my structuring
+of make_parser though. 
+
+Now to discuss the weaknesses of both of the functions
+I will go through each of the test cases that may cause our naive matcher
+and parser to fail. This is because fundamentally with the assignment provided
+and limited techniques described it is not mathematically possible to create
+a parser and matcher that will work for every possible grammar. One of the
+first ways that the matcher and parser can be defeated is with a grammar
+that causes Left-recursion loops. I provided one such grammar in my 
+hw2test.ml file that demonstrates such a failure but I purposefully
+commented out the test cases that I ran to check this behavior as they
+cause hanging behavior of the function. Effectivley though these test cases 
+demonstrate how both make_matcher and make_parser infinitely descend if
+called with the given grammar. Another shortcoming of the make_matcher
+and make_parser functions is Epsilon cycles such as (A->B; B->A) although
+I did not specifically write test cases for these grammars these could also
+lead to an infinite cycle. Finally there is also the contsraint that the 
+matcher and parser must try instructions in order. This leads to a 
+function that when provided with situations such as in my 
+make_matcher_test_1 and make_parser_test_1 that demonstrate how
+grammars that contain repeating symbols that are ordered with the 
+shorter terminal first can lead to matchers and parsers that incorrectly
+choose the wrong alternative. This can also be seen in the awkish grammar
+if there were to be a grammar passed with "--" that could be incorreclty 
+handled since there is also a "-". Overall for my test cases I provided a 
+variety of test cases that covered what I felt were the major failings of 
+the functions along with another grammar for make_matcher_test_0
+and make_parser_test_0 that handled a grammar for cases such as paranthesis
+to ensure there is equal amount of open and closed paranthesis. This was 
+succesfully handled by the matcher and parser though. 
+
+It is also worth menitoning that I tried a variety of differnt methods, but 
+I was unable to obtain a full 30/30 for my make_parser due to reasons I 
+am unsure of. I tried a variety of test cases that are not included and 
+I discussed with peers but I was still unable to find the exact issue.
+I would like to revisit this in the future if the hidden autograder test
+cases are released so I can understand what I was missing. 
+
+
+Appendix:
+Below I will include my use of chatgpt for research and understanding purposes:
+Can you help me understand the following terms on a deeper level:
+symbol, right hand side, rule
+same as in Homework 1.
+alternative list
+A list of right hand sides. It corresponds to all of a grammar's rules for a given nonterminal symbol. By convention, an empty alternative list [] is treated as if it were a singleton list [[]] containing the empty symbol string.
+production function
+A function whose argument is a nonterminal value. It returns a grammar's alternative list for that nonterminal.
+grammar
+A pair, consisting of a start symbol and a production function. The start symbol is a nonterminal value.
+fragment
+a list of terminal symbols, e.g., ["3"; "+"; "4"; "xyzzy"].
+acceptor
+a function whose argument is a fragment frag. If the fragment is not acceptable, it returns None; otherwise it returns Some x for some value x.
+matcher
+a curried function with two arguments: an acceptor accept and a fragment frag. A matcher matches a prefix p of frag such that accept (when passed the corresponding suffix) accepts the corresponding suffix (i.e., the suffix of frag that remains after p is removed). If there is such a match, the matcher returns whatever accept returns; otherwise it returns None.
+parse tree
+a data structure representing a parse tree in the usual way. It has the following OCaml type:
+type ('nonterminal, 'terminal) parse_tree =
+  | Node of 'nonterminal * ('nonterminal, 'terminal) parse_tree list
+  | Leaf of 'terminal
+If you traverse a parse tree in preorder left to right, the leaves you encounter contain the same terminal symbols as the parsed fragment, and each internal node of the parse tree corresponds to a rule in the grammar, traversed in a leftmost derivation order.
+parser
+a function from fragments to parse trees. Parsers consume th
+ChatGPT said:
+
+Thought for 4 seconds
+Here’s a deeper look at each of these concepts and how they fit together in building and using a grammar-based parser:
+
+1. Symbol
+At its core, a symbol is simply a name. There are two disjoint categories:
+
+Terminal symbols are the “atoms” of your language—the actual tokens you see in input (e.g. "+", "if", "identifier").
+Nonterminal symbols are placeholders for patterns of terminals (e.g. Expr, Stmt).
+Deeper insight: thinking of nonterminals as “types” of phrases (an Expr might be any arithmetic expression) helps you organize complex languages into layers of abstraction.
+
+2. Right‐Hand Side (RHS)
+A right‐hand side is one particular sequence of symbols (terminals and/or nonterminals) that can replace a nonterminal in a derivation.
+
+E.g. for a rule Expr → Expr “+” Term, the sequence [Expr; "+"; Term] is that rule’s RHS.
+Deeper insight: each RHS is one way to expand a nonterminal. In ambiguous grammars you may have multiple RHS’s allowing different parse trees (e.g. different grouping of + operations).
+
+3. Rule
+A rule (or production) pairs a nonterminal on the left with one of its RHS’s on the right:
+
+Nonterminal → RHS
+It’s the atomic rewriting step in your grammar.
+
+Deeper insight: rules embody the structure of your language. When you’re debugging or extending a grammar, you’re really creating, splitting, or refactoring these rules.
+
+4. Alternative List
+For each nonterminal, you collect all of its possible RHS’s into a list. That list is the alternative list.
+
+let alternatives Expr = [
+  [Term];
+  [Expr; "+"; Term];
+  [Expr; "-"; Term];
+]
+By convention, an empty list of alternatives [] means there is exactly one RHS—the empty string—so it’s treated as [[]].
+
+Deeper insight: representing rules this way makes it easy to write a generic parser: you just loop over the alternative list for the current nonterminal.
+
+5. Production Function
+Instead of hard‐coding a giant match or lookup table, you package all alternative lists into a function:
+
+val prod : nonterminal -> rhs list
+Given a nonterminal, it returns its alternative list.
+
+Deeper insight: this function is your grammar’s “API”—parsers call it to discover how to expand each nonterminal on the fly.
+
+6. Grammar
+A grammar is the pair
+
+(start_symbol, production_function)
+Start symbol is where parsing begins (e.g. Expr).
+Production function tells you how to expand any nonterminal.
+Deeper insight: by abstracting to this pair, you can write one generic parser that works with any grammar you supply.
+
+7. Fragment
+A fragment is just the input you’re trying to match: a list of terminal symbols.
+
+["3"; "+"; "4"; "xyzzy"]
+Deeper insight: thinking of your input as a list makes your parser purely functional and easy to backtrack on.
+
+8. Acceptor
+An acceptor is a function
+
+frag -> 'a option
+that looks at the suffix of the input: if that suffix is acceptable, it returns Some result; otherwise None.
+
+Deeper insight: by parameterizing your matcher with an acceptor, you separate how you match from what you do at the finish. You can parse for recognition, or build a value, or do semantic checks.
+
+9. Matcher
+A matcher is a curried function
+
+matcher : acceptor -> fragment -> 'a option
+It tries to peel off a prefix p of the fragment such that when you hand the remaining suffix to the acceptor, you get Some x. If no such split exists, you get None.
+
+Deeper insight: this design is tail‐recursive and compositional—you can build complex matchers by combining simpler ones, and you never need mutable state.
+
+10. Parse Tree
+A parse tree records exactly which rules you used in a left‐most derivation, with this OCaml type:
+
+type ('nt,'t) parse_tree =
+  | Node of 'nt * ('nt,'t) parse_tree list
+  | Leaf of 't
+A Leaf holds one terminal.
+A Node(sym, children) corresponds to choosing the rule sym → ... whose RHS length equals List.length children.
+Deeper insight: the tree is both a proof (you really did derive the string) and a data structure you can traverse to perform evaluation, code‐gen, or type checking.
+
+11. Parser
+A parser is a function
+
+fragment -> ('nt,'t) parse_tree option
+that consumes an entire fragment and, if successful, returns its parse tree (or None on failure).
+
+Deeper insight: parsers are just special matchers whose acceptor insists on consuming all of the fragment and then returns the completed parse tree. By layering matchers and acceptors, you get full parsing power with minimal code reuse.
+
+Putting It All Together
+
+Grammar gives you your vocabulary (nonterminals and the ways to expand them).
+Matcher + Acceptor give you a reusable mechanism to check prefixes and eventual acceptance, leaving you free to decide what “acceptance” means.
+Parse Tree is the rich result you build when your acceptor returns success.
+Parser ties matcher and acceptor together, ensuring you both match the grammar and build the tree for the entire input.
+By keeping each concept separate—symbols vs. rules, grammar vs. production function, matching vs. accepting—you gain modularity. You can swap in different acceptors to do recognition only, AST‐construction, or even early semantic checks, all without touching your core matcher code.
+
+You said:
+Can you help me understand how a matcher relates to a parser
+ChatGPT said:
+A matcher is the workhorse that knows how to walk through your input, peeling off one symbol at a time according to the grammar; a parser is just a matcher paired with a special acceptor that (a) builds up the parse tree as you go and (b) insists you’ve consumed all of the input.
+
+Concretely, you can think of your parser as:
+
+(* acceptor that succeeds only when the suffix is empty, returning the built tree *)
+let accept_full_tree tree suffix =
+  match suffix with
+  | [] -> Some tree
+  | _  -> None
+
+(* parser = matcher + full-consumption acceptor *)
+let parse fragment =
+  matcher accept_full_tree fragment
+The matcher tries all ways to expand your start nonterminal, recursively matching prefixes of fragment, and whenever it “uses up” some terminals it threads a partial parse-tree through.
+The acceptor you pass in determines what it does when it finds a successful derivation: here it only returns the tree if there’s nothing left to match.
+Because your matcher is fully parameterized by the acceptor, you get a clean separation:
+
+Swap in a simple acceptor that returns Some () on partial consumption, and you’ve got a recognizer (just true/false).
+Swap in one that builds AST nodes or runs semantic checks, and you’ve got richer analyses.
+In short, a parser is simply a matcher whose acceptor enforces “no leftovers” and hands you back the completed parse tree.
+
+You said:
+if I am to exam the rules of a grammar in order iwould it be best to use a dfs approach 
+ChatGPT said:
+Whether a depth-first traversal makes sense really depends on what you’re trying to achieve when you “examine” the grammar’s rules. Here’s a breakdown:
+
+1. Enumerating all derivations (or parse-trees)
+
+DFS (recursive backtracking) is the classic choice:
+Pick a nonterminal
+Recurse into each of its RHS alternatives in turn
+As soon as you hit only terminals, record a complete derivation (or parse-tree)
+Backtrack to try the next alternative
+Why DFS? It’s memory-efficient (stack grows only as deep as your longest derivation) and simple to implement with recursion.
+Watch out for left-recursive rules (e.g. A → A α): a naive DFS will loop forever. You’ll need cycle-detection or a depth bound.
+2. Finding the shortest derivation or least terminals
+
+BFS is better.
+Start from the start symbol as level 0.
+Expand all one-step derivations to get level 1.
+Then all two-step derivations for level 2, etc.
+The first time you see a string of only terminals, that’s guaranteed to be minimal length.
+Why not DFS? A DFS might chase a very deep (or infinite) branch long before it notices a short valid string somewhere else.
+3. Checking reachability or useless nonterminals
+
+A graph-search view of your grammar:
+Nodes = nonterminals
+Edge A → B if B appears in any RHS of A
+Then:
+Use DFS (or BFS) from your start symbol to mark all reachable nonterminals.
+Use a reverse graph + DFS to mark all that can derive terminals.
+Anything unmarked is “useless” and can be pruned.
+4. Building a recursive‐descent or backtracking parser
+
+Internally, most simple parsers are DFS over the grammar’s production function:
+let rec parse_nonterm nt input =
+  alternatives nt
+  |> List.fold_left (fun acc rhs ->
+       match acc with
+       | Some _ -> acc         (* already found a successful branch *)
+       | None   -> match_rhs rhs input
+     ) None
+
+and match_rhs symbols frag =
+  match symbols, frag with
+  | [], _ -> Some frag      (* no more symbols → success with remaining frag *)
+  | sym::rest, _ -> 
+      if is_terminal sym then
+        (* match single terminal and recurse *)
+      else
+        (* recurse into nonterminal with backtracking *)
+That’s literally DFS: try each alternative in order, backtrack on failure.
+So, “Is DFS the best?”
+Yes, if you just want to walk each derivation in left-most order (as most simple parsers or tree-enumerators do).
+No, if your goal is minimal-length strings or you need guaranteed termination on highly recursive or infinite grammars—in those cases, you’ll either bound your DFS or switch to BFS (or another specialized algorithm).
+Bottom line:
+
+For parsing and enumeration, DFS with carefully managed backtracking (and cycle checks) is the go-to.
+For shortest derivation or exhaustive reachability, consider BFS or graph algorithms.
+Let me know which scenario matches your Homework 1 task, and I can help sketch the code!
+
+I am getting the following error: File "hw2.ml", line 89, characters 6-49:
+89 |     | T valid_terminal :: syms_tail, head :: tail when valid_terminal = head ->
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Error: This pattern matches values of type 'a * 'b
+       but a pattern was expected which matches values of type 'c list
+
+from this code:
+let make_parser (start, prod) =
+  let rec parse_rhs syms frag = 
+    match syms with 
+    | [] ->
+      Some ([], frag_)
+    
+    | T valid_terminal :: syms_tail, head :: tail when valid_terminal = head ->
+      (match parse_rhs syms_tail tail with
+        | Some (ts, r) -> Some (Leaf valid_terminal :: ts, r)
+        | None -> None)
+
+    | N non_term :: rest_syms, _ ->
+      try_branches non_term syms_tail frag 
+    
+    | _, _ -> 
+      None
+    
+  and try_branches non_term syms_tail frag =
+    let branches = prod non_term in
+    let rec helper = function
+      | [] -> None
+      | branch :: bs ->
+        match parse_rhs branch frag with
+        | [] -> helper bs
+        | Some (sub, r1) ->
+          (match parse_rhs rest_syms r1 with
+            | Some (ts, r2) -> Some (Node (nt, sub) :: ts, r2)
+            | None -> helper bs)
+    in helper branches
+  in 
+
+  fun frag ->
+    match parse_rhs [N start] frag with
+    | Some ([tree], []) -> Some tree
+    | _ -> None
+ChatGPT said:
+I changed the initial match syms with to match syms, frag with, so tuple patterns like
+
+| T valid_terminal :: syms_tail, head :: tail when valid_terminal = head ->
+now correctly match both syms and frag. I also fixed the stray frag_ typo and made variable names (rest_syms, non_term) consistent. That should resolve the type‐pattern error. Try reloading!
+
+Now I have to complete these tasks I do not want you to do them but can you help me figure out what might be a good nontrivial test case for my make_matcher function and my make_parser test
+ChatGPT said:
+
+Thought for 8 seconds
+Here are a few non-trivial cases you can drop into your test suite. They work against your existing
+
+val make_matcher : (non_term,term) grammar -> (term list -> 'a option) -> term list -> 'a option
+val make_parser  : (non_term,term) grammar -> term list -> (non_term,term) pt option
+Assume you already have
+
+let accept_all suffix = Some suffix
+let accept_empty suffix = match suffix with [] -> Some [] | _ -> None
+and your usual awkish_grammar.
+
+1. Deeply‐nested parentheses with leftover
+let frag1 = ["("; "("; "2"; "+"; "3"; ")"; "+"; "4"; ")"; "-"; "5"; "x"; "y"]
+let test_m1 =
+  (* it should match the prefix "( (2+3)+4 )-5" and leave ["x";"y"] *)
+  make_matcher awkish_grammar accept_all frag1
+  = Some ["x";"y"]
+2. Full‐consumption of a nested expression
+let frag2 = ["("; "1"; "+"; "("; "2"; "-" ; "3"; ")" ; ")"]
+let test_m2 =
+  (* entire fragment is a valid Expr, so with accept_empty we get Some [] *)
+  make_matcher awkish_grammar accept_empty frag2
+  = Some []
+3. Immediate failure on unknown terminal
+let frag3 = ["1"; "*"; "2"]  (* '*' isn’t in our grammar *)
+let test_m3 =
+  make_matcher awkish_grammar accept_all frag3
+  = None
+Corresponding parser tests
+(* 1. Simple number *)
+let test_p1 =
+  make_parser awkish_grammar ["9"]
+  = Some (Node (Expr,
+        [ Node (Term,
+            [ Node (Num, [ Leaf "9" ]) ]) ]))
+
+(* 2. Parenthesized sum *)
+let test_p2 =
+  make_parser awkish_grammar ["("; "1"; "+"; "2"; ")"]
+  = Some (Node (Expr,
+        [ Node (Term,
+            [ Node (Num, [ Leaf "1" ]) ]);
+          Node (Binop, [ Leaf "+" ]);
+          Node (Expr,
+            [ Node (Term,
+                [ Node (Num, [ Leaf "2" ]) ]) ]) ]))
+
+(* 3. Nested parentheses *)
+let test_p3 =
+  make_parser awkish_grammar ["("; "("; "3"; "-"; "4"; ")"; "+"; "5"; ")"]
+  = Some (Node (Expr,
+        [ Node (Term,
+            [ Node (Term,  (* inner Expr→Term→Num *) 
+                [ Node (Num, [ Leaf "3" ]) ]) ]);
+          Node (Binop, [ Leaf "-" ]);
+          Node (Expr,
+            [ Node (Term,
+                [ Node (Num, [ Leaf "4" ]) ]) ]);
+          Node (Binop, [ Leaf "+" ]);
+          Node (Expr,
+            [ Node (Term,
+                [ Node (Num, [ Leaf "5" ]) ]) ]) ]))
+These exercise:
+
+make_matcher’s ability to leave a non-empty suffix,
+full‐consumption matches with accept_empty,
+immediate failures on invalid tokens,
+make_parser’s tree‐building for simple, parenthesized, and nested expressions.
+Feel free to tweak the exact tree shapes to match your constructors (e.g. if your Node flattens lists differently), but this should give you a robust sanity check.
+
+
+Thought for 24 seconds
+
+
+val test7 : bool = true
+type eq_nt = S
+File "hw2test.ml", line 208, characters 4-5:
+208 |   ( S,
+          ^
+Error: This expression has type eq_nt but an expression was expected of type
+         non_term = string
+ChatGPT said:
+
+Thought for a few seconds
+The problem here is that your grammar type is already fixed to
+
+type non_term = string
+type ('nt,'t) grammar = non_term * ('nt -> (‘nt,’t) symbol list list)
+so your start‐symbol must be a string, not an eq_nt variant. When you write
+
+type eq_nt = S
+
+let eq_grammar : (eq_nt, string) grammar =
+  (S, fun …)
+OCaml rightly complains: it expected a string (because non_term = string), but you gave it an eq_nt.
+
+Two ways to fix
+1. Keep non_term = string and write your grammar in terms of strings
+
+let eq_grammar : (string, string) grammar =
+  (* start symbol is the string "S" *)
+  ("S", function
+    | "S" ->
+        [ [ T "a" ; N "S" ; T "b" ]  (* a S b *)
+        ; []                        (* ε *)
+        ]
+    | _ -> [])
+Then your tests become:
+
+let test_eq_matcher =
+  make_matcher eq_grammar accept_all
+    ["a";"a";"b";"b";"x";"y"]
+  = Some ["x";"y"]
+
+let test_eq_parser =
+  match make_parser eq_grammar ["a";"a";"b";"b"] with
+  | Some tree -> parse_tree_leaves tree = ["a";"a";"b";"b"]
+  | None      -> false
+2. (Less recommended) Redefine non_term to be your variant
+
+If you really want to use a variant type for your nonterminals, you’d have to change the alias
+
+type non_term = string
+to
+
+type non_term = eq_nt
+and then your grammar becomes
+
+type ('nt,'t) grammar = 'nt * ('nt -> …)
+and you can write
+
+type eq_nt = S
+
+let eq_grammar : (eq_nt, string) grammar =
+  (S, function
+     | S -> [ [T "a"; N S; T "b"]; [] ]
+  )
+—but that ripples through your entire file (all grammars must now use eq_nt instead of string). For a quick test, option (1) is much simpler.
+
+In short: keep your non_term = string, and write
+
+let eq_grammar : (string,string) grammar = ...
+rather than introducing a new variant eq_nt.
+
