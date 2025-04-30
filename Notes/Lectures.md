@@ -191,11 +191,11 @@ String 		Thread
 ```
 - To accomplish modularization in Ocaml you can use:
 ```Ocaml
-module Q =
-sig
-    type `a queue
-    enqueue, a queue -> `a -> un
-end
+    module Q =
+    sig
+        type `a queue
+        enqueue, a queue -> `a -> un
+    end
 ```
 - Ocaml also has functors: complete function from structers to structors 
 - Must follow scope rules of language to master it
@@ -282,11 +282,11 @@ end
 #### Nested Functions
 - PROBLEM: nested functions (ASSUMING STATIC SCOPING) (C++/C don't allow for nested functions)
     - a nested function has access to variables above it so it needs to access the frame of the program above it
-    - Dynamic Chain (Linked List) 
+    - Dynamic Chain (Linked List) - THIS IS DYNAMIC SCOPING
         - stack pointer and base pointer
         - at bottom of frame next to base pointer need to store the caller's base pointer
         - each frame specifies the base pointer of its caller (Linked List)
-    - SOLUTION: Static Chain (Linked List)
+    - SOLUTION: Static Chain (Linked List) - THIS IS STATIC SCOPING
         - points to its definer base pointer
         - if defined at base level: null pointer
         - static chain link is typically shorter
@@ -320,6 +320,75 @@ end
 ## IMPORTANT TO KNOW:
 - Java Packets
 - Java Subtypes (ESPECIALLY)
+
+## Grammar
+- Ambiguity in a grammar means that there exists an expression that can generate more than on possible parse tree
+
+## Typing 
+- **Dynamic Typing** : at runtime i.e. Python
+- **Static Typing** : at compule time i.e. Java C++/C
+
+- Statically typed languages
+
+    - A language is statically typed if the type of a variable is known at compile time. For some languages this means that you as the programmer must specify what type each variable is; other languages (e.g.: Java, C, C++) offer some form of type inference, the capability of the type system to deduce the type of a variable (e.g.: OCaml, Haskell, Scala, Kotlin).
+
+    - The main advantage here is that all kinds of checking can be done by the compiler, and therefore a lot of trivial bugs are caught at a very early stage.
+
+    - Examples: C, C++, Java, Rust, Go, Scala
+
+- Dynamically typed languages
+
+    - A language is dynamically typed if the type is associated with run-time values, and not named variables/fields/etc. This means that you as a programmer can write a little quicker because you do not have to specify types every time (unless using a statically-typed language with type inference).
+
+    - Examples: Perl, Ruby, Python, PHP, JavaScript, Erlang
+
+    - Most scripting languages have this feature as there is no compiler to do static type-checking anyway, but you may find yourself searching for a bug that is due to the interpreter misinterpreting the type of a variable. Luckily, scripts tend to be small so bugs have not so many places to hide.
+
+    - Most dynamically typed languages do allow you to provide type information, but do not require it. One language that is currently being developed, Rascal, takes a hybrid approach allowing dynamic typing within functions but enforcing static typing for the function signature.
+
+## Scoping
+- **Dynamic Scoping**: is mainly old languages 
+    - non local variables found via callers
+    
+- **Static Scoping**: mainly used by every language now:
+    - non local variables found via definitons static chain
+
+## Binding
+- **Dynamic Binding**: happens at runtime and needs the context of the language
+    - to do OOP and Subtype Polymorphism you need dynamic binding
+- **Static Bindings**: 
+    - for things that are known at compile time
+
+
+## Java Subtypes
+- In the case of Java subtype relationships they are transitive:
+    - i.e. if A is a subtype of B and B is a subtype of C; **A is a subtype of C**
+- The inheritance graph of Java subtypes is fundamentally a tree since a class can only extend
+one parent class; it still has the capability of having many templates though 
+- Java type invariance even though String is a subtype of Object List<String> is not a subtype of List<Object>
+
+## Polymorphism
+### Ad hoc Polymorphism (Overloading)
+- Defining multiple functions with the same name but different types allowed
+### Sub type polymorphism (Inheritance or Interfaces)
+- Subtypes of a class can use functions of the parent class but parent class cannot use subtype's functions
+### Parametric Polymorphism
+- Explicitly written functions with things such as generics and templates to allow for multiple types of polymorphism
+- i.e. generic code
+- key points: always uses the same implementation regardless of type
+- for Statically typed language:
+    - you know at compile time you need static binding and static scoping
+- for dynamically typed language:
+    - you don't need static binding since you 
+
+### Compared
+| Aspect                      | Parametric Polymorphism                  | Ad Hoc Polymorphism                            | Subtype Polymorphism                       |
+|----------------------------|------------------------------------------|------------------------------------------------|--------------------------------------------|
+| Definition                 | Code works for **any type** generically  | Code works for **specific types**, each with custom logic | Code works with **subtypes of a parent**   |
+| Type relation              | **Unrelated types**                      | **Unrelated types**                            | **Related types** via inheritance/interface |
+| Behavior                   | **Same behavior** for all types          | **Type-specific behavior**                     | **Shared interface**, overridden behavior  |
+| Resolution                 | **Compile-time**                         | **Compile-time or runtime** (depends on language) | **Runtime dispatch** (dynamic binding)     |
+| Mechanism                  | Type parameters (e.g. `'a`, `T`)         | Overloading, type classes, duck typing         | Inheritance, interfaces, virtual methods   |
 
 ## Ocaml Grammar
 - the type of a function is defined as the types of the input combined by arrows pointing to a final type which is the output
@@ -361,8 +430,92 @@ optomize it to be similar to a loop and optomize with new stack frames
     - The key here is that the recursive call being last makes it so the compiler can optimize the function due
     to there being no deffered computation and then stack frames do not have to be retained
 
+## 📘 EBNF vs BNF – Syntax Grammar Comparison
+
+### 🔹 What is BNF (Backus–Naur Form)?
+
+BNF is a **simple and strict** formal notation used to describe the syntax of programming languages using production rules.
+
+#### 📌 Syntax Rules:
+- `::=` for definitions
+- `<...>` for nonterminals
+- `|` for alternatives (not in BNF but can be used for exam )
+- No support for shorthand like `?`, `{}`, or `[]`
+
+#### ✅ Example (BNF)
+```bnf
+<expr> ::= <term> | <term> "+" <expr>
+<term> ::= <factor> | <factor> "*" <term>
+<factor> ::= "(" <expr> ")" | <number>
+<number> ::= "0" | "1" | ... | "9"
+```
+
+#### 🧠 Characteristics:
+- Verbose
+- Requires recursion to express repetition or optionality
+- Limited in shorthand expressions
+
+---
 
 
+## 📁 Understanding Left-Hand Side (LHS) and Right-Hand Side (RHS) in Grammars
 
+### 📄 What is a Production Rule?
 
+A production rule defines how a **nonterminal** symbol can be replaced or expanded into a sequence of **terminals and/or nonterminals**.
+
+#### General Form:
+```
+<nonterminal> ::= expression
+```
+
+---
+
+### 🔹 Left-Hand Side (LHS)
+- The **symbol being defined**
+- Always a **nonterminal**
+- Appears on the **left** of `::=`
+
+#### Example:
+```bnf
+<expr> ::= <term> "+" <expr> | <term>
+```
+Here, `<expr>` is the **LHS**.
+
+---
+
+### 🔸 Right-Hand Side (RHS)
+- The **definition** or **expansion** of the LHS
+- Can include terminals, nonterminals, and EBNF operators
+- Appears on the **right** of `::=`
+
+#### Same Example:
+```bnf
+<expr> ::= <term> "+" <expr> | <term>
+```
+Here, `<term> "+" <expr> | <term>` is the **RHS**.
+
+---
+
+### 🧠 Analogy: Assignment Statement
+You can think of a rule like:
+```
+<lhs> ::= <rhs>
+```
+as:
+```
+thing = definition
+```
+The **LHS** names the thing being defined, the **RHS** shows how it is constructed.
+
+---
+
+### ✅ Summary
+
+| Part         | Name            | Description                                  |
+|--------------|------------------|----------------------------------------------|
+| Left-hand side (LHS) | Nonterminal | The symbol being defined                     |
+| Right-hand side (RHS) | Expression   | How the LHS can be composed using terminals and nonterminals |
+
+> **LHS and RHS** are central concepts in grammar rules: think of them like variable names and their definitions.
 
