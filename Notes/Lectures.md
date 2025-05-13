@@ -519,3 +519,21 @@ The **LHS** names the thing being defined, the **RHS** shows how it is construct
 
 > **LHS and RHS** are central concepts in grammar rules: think of them like variable names and their definitions.
 
+# Lecture 9
+
+## Java vs. C++
+- JAVA
+    - original design goal of Java - embedded systems
+    - needed to be more reliable
+    - better multithreading
+        - via Java Memory Model
+    - Remote Software Updates
+    - Failings of C++:
+        - lots of places where behavior is undefined
+            - uninitialized variables
+            - indexes out of range
+            - null pointers
+    - Trade off of Java - worse performance than C++ for reliability
+
+
+
